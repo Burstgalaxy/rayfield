@@ -280,11 +280,36 @@ else
 end
 
 
-local Main = Rayfield.Main
+-- Используем WaitForChild для надежного получения элементов UI
+local Main = Rayfield:WaitForChild("Main", 5)
+if not Main then
+	warn("Rayfield Ошибка: Не удалось найти фрейм 'Main'. Загрузка прервана.")
+	Rayfield:Destroy()
+	return RayfieldLibrary
+end
+
+local Topbar = Main:WaitForChild("Topbar", 5)
+if not Topbar then
+	warn("Rayfield Ошибка: Не удалось найти 'Topbar' внутри 'Main'. Загрузка прервана.")
+	Rayfield:Destroy()
+	return RayfieldLibrary
+end
+
+local LoadingFrame = Main:WaitForChild("LoadingFrame", 5)
+if not LoadingFrame then
+	warn("Rayfield Ошибка: Не удалось найти 'LoadingFrame' внутри 'Main'. Загрузка прервана.")
+	Rayfield:Destroy()
+	return RayfieldLibrary
+end
+
+local Notifications = Rayfield:WaitForChild("Notifications", 5)
+if not Notifications then
+	warn("Rayfield Ошибка: Не удалось найти 'Notifications'. Уведомления не будут работать.")
+	Rayfield:Destroy()
+	return RayfieldLibrary
+end
+
 local MPrompt = Rayfield:FindFirstChild('Prompt')
-local Topbar = Main.Topbar
-local LoadingFrame = Main.LoadingFrame
-local Notifications = Rayfield.Notifications
 local dragBar = Rayfield:FindFirstChild('Drag')
 local dragInteract = dragBar and dragBar.Interact
 
