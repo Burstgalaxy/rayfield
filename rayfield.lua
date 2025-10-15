@@ -6,7 +6,8 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 
 local useStudio = RunService:IsStudio()
-local requestsDisabled = false
+-- Отключаем все сетевые аналитические запросы
+local requestsDisabled = true
 
 local function loadWithTimeout(url: string, timeout: number?)
 	assert(type(url) == "string", "Expected string, got " .. type(url))
@@ -64,6 +65,7 @@ local settingsTable = {
 		rayfieldOpen = { Type = 'bind', Value = 'K', Name = 'Rayfield Keybind' },
 	},
 	System = {
+		-- Оставляем настройку на месте — пользователю видно, но аналитика всё равно отключена глобально
 		usageAnalytics = { Type = 'toggle', Value = true, Name = 'Anonymised Analytics' },
 	}
 }
@@ -83,6 +85,7 @@ local function getSetting(category: string, name: string): any
 	return nil
 end
 
+-- Если аналитика глобально отключена, ставим значение настройки в false
 if requestsDisabled then
 	overrideSetting("System", "usageAnalytics", false)
 end
@@ -145,35 +148,13 @@ end
 
 loadSettings()
 
+-- Заглушка отправки отчётов: если аналитика отключена, вызовы не делают ничего вредного
 local analyticsLib
-local sendReport = function(ev_n, sc_n) warn("Analytics library not loaded, cannot send report.") end
+local sendReport = function(ev_n, sc_n) end
 
-if not requestsDisabled then
-	analyticsLib = loadWithTimeout("https://analytics.sirius.menu/script")
-	if analyticsLib and type(analyticsLib.load) == "function" then
-		analyticsLib:load()
-		sendReport = function(ev_n, sc_n)
-			if not (analyticsLib and type(analyticsLib.isLoaded) == "function" and analyticsLib:isLoaded()) then
-				return
-			end
-			if not useStudio then
-				analyticsLib:report({
-					["name"] = ev_n,
-					["script"] = { ["name"] = sc_n, ["version"] = Release }
-				}, {
-					["version"] = InterfaceBuild
-				})
-			end
-		end
-
-		if not cachedSettings or (cachedSettings.System and cachedSettings.System.usageAnalytics and cachedSettings.System.usageAnalytics.Value) then
-			sendReport("execution", "Rayfield")
-		end
-	else
-		warn("Failed to load analytics library or it was invalid.")
-		analyticsLib = nil
-	end
-end
+-- Аналитика полностью пропущена, потому что requestsDisabled = true
+-- (Если later потребуется вернуть аналитику — можно положить сюда загрузчик как было раньше,
+--  но по умолчанию сейчас всё отключено.)
 
 local RayfieldLibrary = {
 	Flags = {},
@@ -440,6 +421,7 @@ function RayfieldLibrary:CreateWindow(Settings)
 	if Settings.ToggleUIKeybind then
 		overrideSetting("General", "rayfieldOpen", Settings.ToggleUIKeybind)
 	end
+	-- Заменяем вызов аналитики на пустышку (ничего не делает)
 	if not requestsDisabled then
 		sendReport("window_created", Settings.Name or "Unknown")
 	end
