@@ -13,7 +13,8 @@ local CoreGui = game:GetService("CoreGui")
 
 -- Environment
 local useStudio = RunService:IsStudio()
-local requestsDisabled = false -- or getgenv and getgenv().DISABLE_RAYFIELD_REQUESTS
+-- [ИСПРАВЛЕНО] Эта строка полностью отключает аналитику и убирает желтые ошибки
+local requestsDisabled = true -- БЫЛО: false
 
 --// FUNCTIONS //--
 
