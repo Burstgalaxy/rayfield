@@ -411,9 +411,14 @@ local function Unhide()
 end
 
 function RayfieldLibrary:Notify(data)
-	print("[Уведомление] Получен запрос на уведомление с заголовком: " .. (data.Title or "Нет заголовка"))
 	task.spawn(function()
-		local newNotification = Notifications.Template:Clone()
+		local template = Notifications:FindFirstChild("Template")
+		if not template then
+			warn("Rayfield Notify Error: Не удалось найти 'Template' внутри 'Notifications'. Уведомление не может быть создано.")
+			return
+		end
+
+		local newNotification = template:Clone()
 		newNotification.Name = data.Title or 'Notification'
 		newNotification.Parent = Notifications
 		newNotification.Visible = true
@@ -422,26 +427,14 @@ function RayfieldLibrary:Notify(data)
 		newNotification.Icon.Image = getAssetUri(data.Image or 0)
 		newNotification.BackgroundColor3 = SelectedTheme.Background
 		newNotification.Position = UDim2.new(0, 0, 0, -80)
-		
-		print("[Уведомление] Создан и настроен объект уведомления.")
-		
-		local animIn = TweenService:Create(newNotification, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-			{ Position = UDim2.new(0, 0, 0, 0) })
-		animIn:Play()
-		print("[Уведомление] Анимация появления запущена.")
-		animIn.Completed:Wait()
-
+		TweenService:Create(newNotification, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Position = UDim2.new(0, 0, 0, 0) }):Play()
 		local duration = data.Duration or math.clamp((#newNotification.Description.Text * 0.1) + 2.5, 3, 10)
-		print("[Уведомление] Уведомление будет показано в течение " .. duration .. " секунд.")
 		task.wait(duration)
-
-		local animOut = TweenService:Create(newNotification, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-			{ Position = UDim2.new(0, 0, 0, -80) })
-		animOut:Play()
-		print("[Уведомление] Анимация исчезновения запущена.")
+		TweenService:Create(newNotification, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+			{ Position = UDim2.new(0, 0, 0, -80) }):Play()
 		task.wait(0.5)
 		newNotification:Destroy()
-		print("[Уведомление] Объект уведомления уничтожен.")
 	end)
 end
 
